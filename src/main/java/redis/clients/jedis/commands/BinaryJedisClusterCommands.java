@@ -282,6 +282,13 @@ public interface BinaryJedisClusterCommands {
    * @param key
    * @param arguments
    */
-  List<byte[]> bitfield(final byte[] key, final byte[]... arguments);
+  List<Long> bitfield(final byte[] key, final byte[]... arguments);
+  
+  /**
+   * Used for HSTRLEN Redis command
+   * @param key 
+   * @param field
+   */
+  Long hstrlen(final byte[] key, final byte[] field);
 
 }

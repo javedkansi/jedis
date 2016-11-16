@@ -58,6 +58,12 @@ public class BinaryJedisCluster implements BinaryJedisClusterCommands,
     this.maxAttempts = maxAttempts;
   }
 
+  public BinaryJedisCluster(Set<HostAndPort> jedisClusterNode, int connectionTimeout, int soTimeout, int maxAttempts, String password, String clientName, GenericObjectPoolConfig poolConfig) {
+    this.connectionHandler = new JedisSlotBasedConnectionHandler(jedisClusterNode, poolConfig,
+            connectionTimeout, soTimeout, password, clientName);
+    this.maxAttempts = maxAttempts;
+  }
+
   @Override
   public void close() {
     if (connectionHandler != null) {
@@ -1838,11 +1844,21 @@ public class BinaryJedisCluster implements BinaryJedisClusterCommands,
   }
 
   @Override
-  public List<byte[]> bitfield(final byte[] key, final byte[]... arguments) {
-    return new JedisClusterCommand<List<byte[]>>(connectionHandler, maxAttempts) {
+  public List<Long> bitfield(final byte[] key, final byte[]... arguments) {
+    return new JedisClusterCommand<List<Long>>(connectionHandler, maxAttempts) {
       @Override
-      public List<byte[]> execute(Jedis connection) {
+      public List<Long> execute(Jedis connection) {
         return connection.bitfield(key, arguments);
+      }
+    }.runBinary(key);
+  }
+
+  @Override
+  public Long hstrlen(final byte[] key, final byte[] field) {
+    return new JedisClusterCommand<Long>(connectionHandler, maxAttempts) {
+      @Override
+      public Long execute(Jedis connection) {
+        return connection.hstrlen(key, field);
       }
     }.runBinary(key);
   }

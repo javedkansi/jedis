@@ -61,7 +61,12 @@ public class JedisCluster extends BinaryJedisCluster implements JedisClusterComm
                       int maxAttempts, String password, final GenericObjectPoolConfig poolConfig) {
     super(Collections.singleton(node), connectionTimeout, soTimeout, maxAttempts, password, poolConfig);
   }
-  
+
+  public JedisCluster(HostAndPort node, int connectionTimeout, int soTimeout,
+          int maxAttempts, String password, String clientName, final GenericObjectPoolConfig poolConfig) {
+    super(Collections.singleton(node), connectionTimeout, soTimeout, maxAttempts, password, clientName, poolConfig);
+  }
+
   public JedisCluster(Set<HostAndPort> nodes) {
     this(nodes, DEFAULT_TIMEOUT);
   }
@@ -96,6 +101,11 @@ public class JedisCluster extends BinaryJedisCluster implements JedisClusterComm
                       int maxAttempts, String password, final GenericObjectPoolConfig poolConfig) {
     super(jedisClusterNode, connectionTimeout, soTimeout, maxAttempts, password, poolConfig);
   }
+
+  public JedisCluster(Set<HostAndPort> jedisClusterNode, int connectionTimeout, int soTimeout,
+          int maxAttempts, String password, String clientName, final GenericObjectPoolConfig poolConfig) {
+    super(jedisClusterNode, connectionTimeout, soTimeout, maxAttempts, password, clientName, poolConfig);
+}
 
   @Override
   public String set(final String key, final String value) {
@@ -1830,6 +1840,16 @@ public class JedisCluster extends BinaryJedisCluster implements JedisClusterComm
       @Override
       public List<Long> execute(Jedis connection) {
         return connection.bitfield(key, arguments);
+      }
+    }.run(key);
+  }
+
+  @Override
+  public Long hstrlen(final String key, final String field) {
+    return new JedisClusterCommand<Long>(connectionHandler, maxAttempts) {
+      @Override
+      public Long execute(Jedis connection) {
+        return connection.hstrlen(key, field);
       }
     }.run(key);
   }

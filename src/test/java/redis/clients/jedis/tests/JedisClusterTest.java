@@ -9,8 +9,10 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -164,7 +166,25 @@ public class JedisClusterTest {
     JedisCluster jc2 = new JedisCluster(new HostAndPort("127.0.0.1", 7379), DEFAULT_TIMEOUT, DEFAULT_TIMEOUT, DEFAULT_REDIRECTIONS, "cluster", DEFAULT_CONFIG);
     assertEquals(3, jc2.getClusterNodes().size());
   }
-  
+
+  @Test
+  public void testSetClientName() {
+    Set<HostAndPort> jedisClusterNode = new HashSet<HostAndPort>();
+    jedisClusterNode.add(new HostAndPort("127.0.0.1", 7379));
+    String clientName = "myAppName";
+    JedisCluster jc = new JedisCluster(jedisClusterNode, DEFAULT_TIMEOUT, DEFAULT_TIMEOUT, DEFAULT_REDIRECTIONS, "cluster", clientName, DEFAULT_CONFIG);
+    Map<String, JedisPool> clusterNodes = jc.getClusterNodes();
+    Collection<JedisPool> values = clusterNodes.values();
+    for(JedisPool jedisPool: values){
+        Jedis jedis = jedisPool.getResource();
+        try{
+            assertEquals(clientName, jedis.clientGetname());
+        }finally{
+            jedis.close();
+        }
+    }
+  }
+
   @Test
   public void testCalculateConnectionPerSlot() {
     Set<HostAndPort> jedisClusterNode = new HashSet<HostAndPort>();
@@ -589,9 +609,9 @@ public class JedisClusterTest {
   @Test
   public void testInvalidStartNodeNotAdded() {
     HostAndPort invalidHost = new HostAndPort("not-a-real-host", 7379);
-    Set<HostAndPort> jedisClusterNode = new HashSet<HostAndPort>();
-    jedisClusterNode.add(new HostAndPort("127.0.0.1", 7379));
+    Set<HostAndPort> jedisClusterNode = new LinkedHashSet<HostAndPort>();
     jedisClusterNode.add(invalidHost);
+    jedisClusterNode.add(new HostAndPort("127.0.0.1", 7379));
     JedisPoolConfig config = DEFAULT_CONFIG;
     config.setMaxTotal(1);
     JedisCluster jc = new JedisCluster(jedisClusterNode,  0, 2, DEFAULT_REDIRECTIONS, "cluster", config);

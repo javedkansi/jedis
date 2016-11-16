@@ -868,9 +868,15 @@ public class BinaryShardedJedis extends Sharded<Jedis, JedisShardInfo> implement
   }
 
   @Override
-  public List<byte[]> bitfield(byte[] key, byte[]... arguments) {
+  public List<Long> bitfield(byte[] key, byte[]... arguments) {
     Jedis j = getShard(key);
     return j.bitfield(key, arguments);
  }
+
+  @Override
+  public Long hstrlen(byte[] key, byte[] field) {
+    Jedis j = getShard(key);
+    return j.hstrlen(key, field);
+  }
   
 }
